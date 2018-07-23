@@ -1,0 +1,48 @@
+pkgname=gcc7
+pkgver=7.3.0
+pkgrel=1
+pkgdesc='The GNU Compiler Collection Legacy Version'
+arch=(aarch64)
+licence=(GPL LGPL FDL custom)
+url='http://gcc.gnu.org'
+makedepends=(binutils libmpc python)
+source=("https://ftp.gnu.org/gnu/gcc/gcc-$pkgver/gcc-$pkgver.tar.xz"
+        "http://isl.gforge.inria.fr/isl-0.18.tar.bz2")
+sha256sums=('832ca6ae04636adbb430e865a1451adf6979ab44ca1c8374f61fba65645ce15c'
+            '6b8b0fd7f81d0a957beb3679c81bbb34ccc7568d5682844d8924424a0dadcb1b')
+_libdir=usr/lib/gcc/$CHOST/${pkgver%%+*}
+
+prepare() {
+  [[ ! -d gcc ]] && ln -s gcc-${pkgver/+/-} gcc
+  [[ ! -d gcc/isl ]] && ln -s ../isl-0.18 gcc/isl
+}
+
+build() {
+  mkdir -p build
+  cd build
+  # -D_FORTIFY_SOURCE=2 is by default included in CPPFLAGS
+  # this flag without optimization will cause configure to not find limits.h and others
+  export CPPFLAGS="-O2 $CPPFLAGS"
+  # --enable-version-specific-runtime-libs # to avoid conflict with the main gcc
+  # --disable-bootstrap # does not compile with a bootstrap. also we do not want it as we are downgrading
+  ../gcc/configure \
+    --program-suffix=-7 \
+    --enable-version-specific-runtime-libs \
+    --disable-bootstrap \
+    --prefix=/usr \
+    --enable-languages=c,c++,lto
+  make
+}
+
+package() {
+  cd build
+  make DESTDIR="$pkgdir" install
+  # libcc1.so will conflict with main gcc
+  mv "$pkgdir"/usr/lib/libcc1.so* "$pkgdir"/${_libdir}
+  # this also conflicts with main gcc and we don't need it
+  rm -rf "$pkgdir"/usr/share/info
+  rm -rf "$pkgdir"/usr/share/locale
+  # man1 pages have suffixes, man7 not
+  rm -rf "$pkgdir"/usr/share/man/man7
+}
+

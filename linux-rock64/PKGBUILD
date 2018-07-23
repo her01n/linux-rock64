@@ -1,0 +1,182 @@
+pkgname=(linux-rock64 linux-rock64-headers)
+pkgver=0.6.59
+pkgrel=1
+arch=(aarch64)
+licence=(GPL2)
+url='https://github.com/ayufan-rock64/linux-kernel'
+# It really does not want to build with gcc8
+# try out gcc8 with next version
+makedepends=(gcc7 python2)
+# not sure what this does, but it is in the main kernel PKGBUILD
+options=('!strip')
+source=("https://github.com/ayufan-rock64/linux-kernel/archive/ayufan-rock64/linux-build/$pkgver.tar.gz"
+        "python2.patch"
+        "compressed-modules.patch")
+sha256sums=('0706022363fdcf90d50a3e2429f3a81295b77885d397f7272a7b390dc221a808'
+            '2ba360bcedd7841d4ab01161dc687f80eb07cd6abc56159db467992b8da770e0'
+            '8fc582d911f8cd7e95035cb481dc9c38c807bef997d8d7243fd4a78c300374f4')
+
+prepare() {
+  ln -sf "linux-kernel-ayufan-rock64-linux-build-${pkgver}" linux
+  # use correct python version
+  patch --directory linux -p1 < python2.patch
+  # compress modules. without this option 'Comprssing package' phase takes hours.
+  patch --directory linux -p1 < compressed-modules.patch
+}
+
+build() {
+  cd linux
+  make mrproper
+  make rockchip_linux_defconfig
+  # Use gcc-7 as a compiler. gcc 8 generate forbidden warnings.
+  # Ignore default LDFLAGS, they are used directly to ld, while it is assumed they go to gcc.
+  # This would be much faster with -j4, but should that be done in /etc/makepkg.conf instead?
+  make CC=gcc-7 LDFLAGS= Image modules dtbs
+}
+
+# it's bullshit i have to declare the 'provides' before build is called
+_linuxver=4.4.132
+
+package_linux-rock64() {
+  pkgdesc='The Linux Kernel and modules for Rock64 board by Ayufan'
+  depends=('coreutils' 'linux-firmware')
+  provides=('kernel26' "linux=${_linuxver}")
+  cd linux
+  _kernver="$(make kernelrelease)"
+  # install modules
+  # We must not install to /lib, the default, because it will conflict with filesystem on installation
+  mkdir -p "${pkgdir}/usr"
+  make INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
+  # do not want the firmware, that is a different package
+  rm -rf ${pkgdir}/usr/lib/firmware
+  # remove the symbolic links to the actual source
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build"
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/source"
+  # install Image
+  mkdir -p "${pkgdir}/boot"
+  cp arch/arm64/boot/Image "${pkgdir}/boot"
+  # install dtbs
+  make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install
+  # the dkms works correctly on installation, i am not sure why
+  # do something about the initrd?
+  # i do not personally need initrd. the initrd is removed on removing the previous kernel.
+  # so everything seems alright for me.
+}
+
+package_linux-rock64-headers() {
+  pkgdesc='Header files and scripts for building modules for linux kernel - Rock64 board by Ayufan'
+  depends=('linux-rock64')
+  provides=("linux-headers=${_linuxver}")
+  cd linux
+  _kernver="$(make kernelrelease)"
+  KARCH=arm64
+  # remove the symbolic links to the actual source
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build"
+  rm -f "${pkgdir}/usr/lib/modules/${_kernver}/source"
+
+  # This is all copied from linux-aarch64 PKGBUILD
+  # my changes are marked with CHG
+  install -D -m644 Makefile \
+    "${pkgdir}/usr/lib/modules/${_kernver}/build/Makefile"
+  install -D -m644 kernel/Makefile \
+    "${pkgdir}/usr/lib/modules/${_kernver}/build/kernel/Makefile"
+  install -D -m644 .config \
+    "${pkgdir}/usr/lib/modules/${_kernver}/build/.config"
+
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/include"
+
+  for i in acpi asm-generic clocksource config crypto drm generated keys linux \
+    math-emu media net pcmcia scsi soc sound trace uapi video xen; do
+    cp -a include/${i} "${pkgdir}/usr/lib/modules/${_kernver}/build/include/"
+  done
+
+  # copy arch includes for external modules
+  mkdir -p ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH
+  cp -a arch/$KARCH/include ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH/
+  # CHG i also need arm
+  mkdir -p ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/arm
+  cp -a arch/arm/include ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/arm/
+
+  # copy files necessary for later builds, like nvidia and vmware
+  cp Module.symvers "${pkgdir}/usr/lib/modules/${_kernver}/build"
+  cp -a scripts "${pkgdir}/usr/lib/modules/${_kernver}/build"
+
+  # fix permissions on scripts dir
+  chmod og-w -R "${pkgdir}/usr/lib/modules/${_kernver}/build/scripts"
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/.tmp_versions"
+
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/arch/${KARCH}/kernel"
+
+  cp arch/${KARCH}/Makefile "${pkgdir}/usr/lib/modules/${_kernver}/build/arch/${KARCH}/"
+
+  cp arch/${KARCH}/kernel/asm-offsets.s "${pkgdir}/usr/lib/modules/${_kernver}/build/arch/${KARCH}/kernel/"
+
+  # copy module linker script
+  cp arch/$KARCH/kernel/module.lds "${pkgdir}/usr/lib/modules/${_kernver}/build/arch/${KARCH}/kernel/"
+
+  # add dm headers
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/md"
+  cp drivers/md/*.h "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/md"
+
+  # add inotify.h
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/include/linux"
+  cp include/linux/inotify.h "${pkgdir}/usr/lib/modules/${_kernver}/build/include/linux/"
+
+  # add wireless headers
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/net/mac80211/"
+  cp net/mac80211/*.h "${pkgdir}/usr/lib/modules/${_kernver}/build/net/mac80211/"
+
+  # add dvb headers for external modules
+  # in reference to:
+  # http://bugs.archlinux.org/task/11194
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/include/config/dvb/"
+  cp include/config/dvb/*.h "${pkgdir}/usr/lib/modules/${_kernver}/build/include/config/dvb/"
+
+  # add dvb headers for http://mcentral.de/hg/~mrec/em28xx-new
+  # in reference to:
+  # http://bugs.archlinux.org/task/13146
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/dvb-frontends/"
+  cp drivers/media/dvb-frontends/lgdt330x.h "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/dvb-frontends/"
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/i2c/"
+  cp drivers/media/i2c/msp3400-driver.h "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/i2c/"
+
+  # add dvb headers
+  # in reference to:
+  # http://bugs.archlinux.org/task/20402
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/usb/dvb-usb"
+  cp drivers/media/usb/dvb-usb/*.h "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/usb/dvb-usb/"
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/dvb-frontends"
+  cp drivers/media/dvb-frontends/*.h "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/dvb-frontends/"
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/tuners"
+  cp drivers/media/tuners/*.h "${pkgdir}/usr/lib/modules/${_kernver}/build/drivers/media/tuners/"
+
+  # add xfs and shmem for aufs building
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/fs/xfs"
+  mkdir -p "${pkgdir}/usr/lib/modules/${_kernver}/build/mm"
+
+  # copy in Kconfig files
+  for i in $(find . -name "Kconfig*"); do
+    mkdir -p "${pkgdir}"/usr/lib/modules/${_kernver}/build/`echo ${i} | sed 's|/Kconfig.*||'`
+    cp ${i} "${pkgdir}/usr/lib/modules/${_kernver}/build/${i}"
+  done
+
+  chown -R root.root "${pkgdir}/usr/lib/modules/${_kernver}/build"
+  find "${pkgdir}/usr/lib/modules/${_kernver}/build" -type d -exec chmod 755 {} \;
+
+  # strip scripts directory
+  # CHG i have removed stripping of executables because it tried to script a shell script
+  find "${pkgdir}/usr/lib/modules/${_kernver}/build/scripts" -type f -perm -u+w 2>/dev/null | while read binary ; do
+    case "$(file -bi "${binary}")" in
+      *application/x-sharedlib*) # Libraries (.so)
+        /usr/bin/strip ${STRIP_SHARED} "${binary}";;
+      *application/x-archive*) # Libraries (.a)
+        /usr/bin/strip ${STRIP_STATIC} "${binary}";;
+    esac
+  done
+
+  # remove unneeded architectures
+  # CHG do not remove 'arm', i need the headers
+  rm -rf "${pkgdir}"/usr/lib/modules/${_kernver}/build/arch/{alpha,arc,arm26,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,metag,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,x86,xtensa}
+
+}
+
