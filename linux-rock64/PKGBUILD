@@ -1,26 +1,23 @@
 pkgname=(linux-rock64 linux-rock64-headers)
-pkgver=0.6.59
+_version=4.4.138-1094
+pkgver=4.4.138.1094
 pkgrel=1
 arch=(aarch64)
 licence=(GPL2)
 url='https://github.com/ayufan-rock64/linux-kernel'
 # It really does not want to build with gcc8
-# try out gcc8 with next version
-makedepends=(gcc7 python2)
+# TODO try out gcc8 with this version
+makedepends=(gcc7 python)
 # not sure what this does, but it is in the main kernel PKGBUILD
 options=('!strip')
-source=("https://github.com/ayufan-rock64/linux-kernel/archive/ayufan-rock64/linux-build/$pkgver.tar.gz"
-        "python2.patch"
+source=("https://github.com/ayufan-rock64/linux-kernel/archive/${_version}-rockchip-ayufan.tar.gz"
         "compressed-modules.patch")
-sha256sums=('0706022363fdcf90d50a3e2429f3a81295b77885d397f7272a7b390dc221a808'
-            '2ba360bcedd7841d4ab01161dc687f80eb07cd6abc56159db467992b8da770e0'
+sha256sums=('4eb427a30fa11b74bf62b12e26a7effbc4b4f420039e4a5d3725253ab628f0a1'  
             '8fc582d911f8cd7e95035cb481dc9c38c807bef997d8d7243fd4a78c300374f4')
 
 prepare() {
-  ln -sf "linux-kernel-ayufan-rock64-linux-build-${pkgver}" linux
-  # use correct python version
-  patch --directory linux -p1 < python2.patch
-  # compress modules. without this option 'Comprssing package' phase takes hours.
+  ln -sf "linux-kernel-${_version}-rockchip-ayufan" linux
+  # compress modules. without this option 'Compressing package' phase takes hours.
   patch --directory linux -p1 < compressed-modules.patch
 }
 
@@ -35,7 +32,7 @@ build() {
 }
 
 # it's bullshit i have to declare the 'provides' before build is called
-_linuxver=4.4.132
+_linuxver=4.4.138
 
 package_linux-rock64() {
   pkgdesc='The Linux Kernel and modules for Rock64 board by Ayufan'
@@ -178,5 +175,7 @@ package_linux-rock64-headers() {
   # CHG do not remove 'arm', i need the headers
   rm -rf "${pkgdir}"/usr/lib/modules/${_kernver}/build/arch/{alpha,arc,arm26,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,metag,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,x86,xtensa}
 
+  # CHG to fix dkms building
+  ln -s arm64 ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/aarch64
 }
 
