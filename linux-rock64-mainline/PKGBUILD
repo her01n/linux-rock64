@@ -1,25 +1,22 @@
-pkgname=(linux-rock64 linux-rock64-headers)
-
-_linuxver=4.4.154
-_ayufanver=1124
+pkgname=(linux-rock64-mainline linux-rock64-mainline-headers)
+_linuxver=4.19.0
+_ayufanver=1073
 _version=${_linuxver}-${_ayufanver}
 pkgver=${_linuxver}.${_ayufanver}
 pkgrel=1
 arch=(aarch64)
 licence=(GPL2)
 url='https://github.com/ayufan-rock64/linux-kernel'
-# It really does not want to build with gcc8
-# try out gcc8 with the next version
-makedepends=(gcc7 python)
+makedepends=(python)
 # not sure what this does, but it is in the main kernel PKGBUILD
 options=('!strip')
-source=("https://github.com/ayufan-rock64/linux-kernel/archive/${_version}-rockchip-ayufan.tar.gz"
+source=("https://github.com/ayufan-rock64/linux-mainline-kernel/archive/${_version}-ayufan.tar.gz"
         "compressed-modules.patch")
-sha256sums=('c2b5c848b6ba6caf0c41163296f66540a52eeedd0ee9669129bd993f76ac6989'  
-            '8fc582d911f8cd7e95035cb481dc9c38c807bef997d8d7243fd4a78c300374f4')
+sha256sums=('e104395e083146066f9fb095056c54da251091da4e700ec481f3e82b7cc5fa8f'  
+            'a8fa4df2545e4457701e012f6ab1b7852d2b16c358e5695fdb13e0d03a5664c5')
 
 prepare() {
-  ln -sf "linux-kernel-${_version}-rockchip-ayufan" linux
+  ln -sf "linux-mainline-kernel-${_version}-ayufan" linux
   # compress modules. without this option 'Compressing package' phase takes hours.
   patch --directory linux -p1 < compressed-modules.patch
 }
@@ -28,13 +25,15 @@ build() {
   cd linux
   make mrproper
   make rockchip_linux_defconfig
-  # Use gcc-7 as a compiler. gcc 8 generate forbidden warnings.
   # Ignore default LDFLAGS, they are used directly to ld, while it is assumed they go to gcc.
   # This would be much faster with -j4, but should that be done in /etc/makepkg.conf instead?
-  make CC=gcc-7 LDFLAGS= Image modules dtbs
+  make LDFLAGS= Image modules dtbs
 }
 
-package_linux-rock64() {
+# it's bullshit i have to declare the 'provides' before build is called
+_linuxver=4.18.0
+
+package_linux-rock64-mainline() {
   pkgdesc='The Linux Kernel and modules for Rock64 board by Ayufan'
   depends=('coreutils' 'linux-firmware')
   provides=('kernel26' "linux=${_linuxver}")
@@ -61,9 +60,9 @@ package_linux-rock64() {
   # so everything seems alright for me.
 }
 
-package_linux-rock64-headers() {
+package_linux-rock64-mainline-headers() {
   pkgdesc='Header files and scripts for building modules for linux kernel - Rock64 board by Ayufan'
-  depends=('linux-rock64')
+  depends=('linux-rock64-mainline')
   provides=("linux-headers=${_linuxver}")
   conflicts=('linux-headers')
   cd linux

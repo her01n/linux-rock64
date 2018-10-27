@@ -3,7 +3,7 @@ gcc7/isl-*.tar.bz2
 gcc7/src
 gcc7/pkg
 gcc7/gcc7-*.pkg.tar.xz
-linux-rock64/*.tar.gz
-linux-rock64/src
-linux-rock64/pkg
-linux-rock64/linux-rock64-*-aarch64.pkg.tar.xz
+linux-rock64*/*.tar.gz
+linux-rock64*/src
+linux-rock64*/pkg
+linux-rock64*/linux-rock64-*-aarch64.pkg.tar.xz
