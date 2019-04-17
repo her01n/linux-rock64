@@ -1,6 +1,6 @@
 pkgname=(linux-rock64-mainline linux-rock64-mainline-headers)
-_linuxver=4.19.0
-_ayufanver=1073
+_linuxver=5.0.0
+_ayufanver=1105
 _version=${_linuxver}-${_ayufanver}
 pkgver=${_linuxver}.${_ayufanver}
 pkgrel=1
@@ -12,7 +12,7 @@ makedepends=(python)
 options=('!strip')
 source=("https://github.com/ayufan-rock64/linux-mainline-kernel/archive/${_version}-ayufan.tar.gz"
         "compressed-modules.patch")
-sha256sums=('e104395e083146066f9fb095056c54da251091da4e700ec481f3e82b7cc5fa8f'  
+sha256sums=('b38f93e39d215faec140636a497eb3f5445aba917bd1104716d1abf10a432612'  
             'a8fa4df2545e4457701e012f6ab1b7852d2b16c358e5695fdb13e0d03a5664c5')
 
 prepare() {
