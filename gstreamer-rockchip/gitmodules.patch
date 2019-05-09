@@ -1,0 +1,9 @@
+diff --git a/.gitmodules b/.gitmodules
+index a6b1eda..246332a 100644
+--- a/.gitmodules
++++ b/.gitmodules
+@@ -1,3 +1,3 @@
+ [submodule "common"]
+ 	path = common
+-	url = git://anongit.freedesktop.org/gstreamer/common
++	url = https://gitlab.freedesktop.org/gstreamer/common
