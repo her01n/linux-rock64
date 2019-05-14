@@ -1,10 +1,12 @@
 */src
 */pkg
 */*.pkg.tar.xz
+ffmpeg-mpp/ffmpeg
 gcc7/gcc-7.*.tar.xz
 gcc7/isl-*.tar.bz2
 gstreamer-rockchip/gstreamer-rockchip
 gstreamer-rockchip/release_*.tar.gz
+libmali-rock64/bionic.tar.gz
 linux-rock64*/*.tar.gz
 mpp/mpp
 mpp/release_*.tar.gz

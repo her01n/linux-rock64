@@ -1,0 +1,32 @@
+ayufan's versions
+
+exported functions
+library name                    
+libmali-utgard-450-r7p0...  EGL   gbm  GLES2  GLES1  mali  opencl  wegl
+-fbdev.so                   yes   no   ???    yes    yes   ???     no
+-gbm.so                     yes   yes  ???    yes    yes   ???     no
+-r0p0-wayland.so            yes   yes  ???    yes    yes   ???     no
+-wayland-fbdev.so           yes   no   ???    yes    yes   ???     yes
+-wayland.so                 yes   yes  ???    yes    yes   ???     yes
+-x11-fbdev.so               yes   no   ???    yes    yes   ???     no
+.so                         yes   yes  ???    yes    yes   ???     no
+
+available library     exported function
+EGL                   eglDestroyContext
+gbm                   gbm_device_destroy
+GLESv2                glUnmapBuffer
+GLESv1_CM             glTexEnvf
+libmali               mali_image_release
+libMaliOpenCL
+libOpenCL
+libwayland-egl        wl_egl_window_destroy
+
+stock mpv:
+-fbdev.so         failed to load driver: rockchip
+-gbm.so           [vo/gpu/opengl] Failed to get EGL display.
+-r0p0-wayland.so  [vo/gpu/opengl] Failed to get EGL display.
+-wayland.so       [vo/gpu/opengl] Failed to get EGL display.
+.so               [vo/gpu/opengl] Failed to get EGL display.
+.so - gbm         [vo/gpu/opengl] Failed to get EGL display.
+.so - egl         [vo/gpu/opengl] Failed to get EGL display.
+

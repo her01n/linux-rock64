@@ -1,0 +1,97 @@
+pkgname=(libmali-rock64)
+
+_upstream_version=1.6
+_upstream_revision=3
+_ayufan_revision=5
+_ayufan_version=${_upstream_version}-${_upstream_revision}ayufan${_ayufan_revision}
+pkgver=${_upstream_version}.${_upstream_revision}.${_ayufan_revision}
+pkgrel=1
+arch=(aarch64)
+licence=(GPL2)
+url='https://github.com/ayufan-rock64/libmali'
+makedepends=(cmake)
+source=("https://github.com/ayufan-rock64/libmali/archive/ayufan/rock64-ppa/${_ayufan_version}/bionic.tar.gz"
+        "24-mali.rules"
+        "libmali-rock64.conf")
+sha256sums=('cc0949ab6c964745694fce0a110c22f40a6c89490017c7b1791d509299670a17'
+            '5026810fc5ea00b9ad74cf2ac5f73cb283e52584bef14d7d0f74d851010ac2a0'
+            'f283a326962a77447bcb562fe2c4a81ca556ae2ffaacc35375207fd378574ccd')
+prepare() {
+  ln -sf libmali-ayufan-rock64-ppa-${_ayufan_version}-bionic libmali
+}
+
+# we are installing to local, until we are able to resolve conflicts with mesa package
+# check LOCAL
+
+build() {
+  cd libmali
+  # we are not really building, just creating correct .pc files
+  rm -rf build
+  mkdir build
+  cd build
+  # LOCAL
+  # cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib ..
+  cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_INSTALL_LIBDIR=lib ..
+  make
+}
+
+package() {
+  pkgdesc="Video library for Rock64 board by Ayufan"
+
+  # Fix the permissions
+  install -d ${pkgdir}/etc/udev/rules.d
+  install -D 24-mali.rules ${pkgdir}/etc/udev/rules.d
+
+  # LOCAL
+  install -D libmali-rock64.conf ${pkgdir}/etc/ld.so.conf.d/libmali-rock64.conf
+
+  # LOCAL
+  # provides=('libegl' 'libgles')
+  # conflicts=('libegl' 'libgles')
+  # we are installing manually, files we do not need (and do not work) are installed otherwise
+  # and symbolic links to the shared library are not created
+  cd libmali
+
+  # LOCAL
+  # _prefix=${pkgdir}/usr
+  _prefix=${pkgdir}/usr/local
+
+  # install the shared library
+  _library=libmali-utgard-450-r7p0-gbm.so
+  mkdir -p ${_prefix}/lib 
+  cp lib/aarch64-linux-gnu/${_library} ${_prefix}/lib
+  ln -s ${_library} ${_prefix}/lib/libEGL.so.1
+  ln -s ${_library} ${_prefix}/lib/libEGL.so.1.0.0
+  ln -s ${_library} ${_prefix}/lib/libEGL.so.1.4
+  ln -s ${_library} ${_prefix}/lib/libgbm.so
+  ln -s ${_library} ${_prefix}/lib/libgbm.so.1
+  ln -s ${_library} ${_prefix}/lib/libgbm.so.1.0.0
+  ln -s ${_library} ${_prefix}/lib/libGLESv2.so.2
+  ln -s ${_library} ${_prefix}/lib/libGLESv2.so.2.0
+  ln -s ${_library} ${_prefix}/lib/libGLESv2.so.2.0.0
+  ln -s ${_library} ${_prefix}/lib/libGLESv1_CM.so.1
+  ln -s ${_library} ${_prefix}/lib/libGLESv1_CM.so.1.0.0
+  ln -s ${_library} ${_prefix}/lib/libGLESv1_CM.so.1.1
+  ln -s ${_library} ${_prefix}/lib/libMali.so
+  ln -s ${_library} ${_prefix}/lib/libMaliOpenCL.so
+  ln -s ${_library} ${_prefix}/lib/libOpenCL.so.1
+  ln -s ${_library} ${_prefix}/lib/libOpenCL.so.1.0.0
+#  ln -s ${_library} ${_prefix}/lib/libwayland-egl.so.1
+#  ln -s ${_library} ${_prefix}/lib/libwayland-egl.so.2.0.0
+
+  # Install the headers
+  for file in $(find include -type f); do
+    install -D ${file} ${_prefix}/${file}
+  done
+
+  # Install pkgconfig files
+  install -d ${_prefix}/lib/pkgconfig
+  install build/egl.pc ${_prefix}/lib/pkgconfig
+  install build/gbm.pc ${_prefix}/lib/pkgconfig
+  install build/glesv2.pc ${_prefix}/lib/pkgconfig
+  install build/mali.pc ${_prefix}/lib/pkgconfig
+  install build/OpenCL.pc ${_prefix}/lib/pkgconfig
+#  install build/wayland-egl.pc ${_prefix}/lib/pkgconfig
+
+}
+
