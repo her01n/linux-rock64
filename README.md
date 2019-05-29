@@ -1,5 +1,8 @@
 Arch Linux ARM packages for Rock64 board. 
 These packages supports hardware accelerated video playback with mpv player.  
+I was able to play h264/h265 720p 30fps, and h264 1080p 24fps smoothly on 4k display.
+4k playback is not watchable.
+
 Get the built packages:
 
 https://github.com/her01n/linux-rock64/releases/latest
@@ -13,9 +16,12 @@ And install:
     # pacamn -U libmali-rock64-1.6.3.5-1-aarch64.pkg.tar.xz
     # pacman -S mpv
     # gpasswd -a username video
+    # systemctl enable gpu-governor
     # reboot
-    $ mpv --hwdec=rkmpp --vo=gpu --gpu-context=drm h265.mkv
+    $ mpv --hwdec=rkmpp --vo=gpu --gpu-context=drm test/h264.1080p.24f.mkv
 
+Service "gpu-governor" would enable performance GPU governor. 
+With the default 'simple_ondemand' governor the playback frame rate is very poor.
 
 ## linux-rock64
 Contains kernel, modules and headers for rock64, made by ayufan. This kernel is necessary for 

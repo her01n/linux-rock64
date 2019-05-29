@@ -12,10 +12,12 @@ url='https://github.com/ayufan-rock64/libmali'
 makedepends=(cmake)
 source=("https://github.com/ayufan-rock64/libmali/archive/ayufan/rock64-ppa/${_ayufan_version}/bionic.tar.gz"
         "24-mali.rules"
-        "libmali-rock64.conf")
+        "libmali-rock64.conf"
+        "gpu-governor.service")
 sha256sums=('cc0949ab6c964745694fce0a110c22f40a6c89490017c7b1791d509299670a17'
             '5026810fc5ea00b9ad74cf2ac5f73cb283e52584bef14d7d0f74d851010ac2a0'
-            'f283a326962a77447bcb562fe2c4a81ca556ae2ffaacc35375207fd378574ccd')
+            'f283a326962a77447bcb562fe2c4a81ca556ae2ffaacc35375207fd378574ccd'
+            '9309dface55bb77d3d15b1f43aa9bbde14b0e8b8a475a093f80adfa4ff4d5aa7')
 prepare() {
   ln -sf libmali-ayufan-rock64-ppa-${_ayufan_version}-bionic libmali
 }
@@ -41,6 +43,9 @@ package() {
   # Fix the permissions
   install -d ${pkgdir}/etc/udev/rules.d
   install -D 24-mali.rules ${pkgdir}/etc/udev/rules.d
+
+  # Boost up the gpu, nothing really works with the default simple_ondemand governor
+  install -D gpu-governor.service ${pkgdir}/usr/lib/systemd/system/gpu-governor.service
 
   # LOCAL
   install -D libmali-rock64.conf ${pkgdir}/etc/ld.so.conf.d/libmali-rock64.conf

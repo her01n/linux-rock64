@@ -1,0 +1,11 @@
+[Unit]
+Description=Configure GPU frequency governor
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/bash -c "echo performance | tee /sys/devices/platform/ff300000.gpu/devfreq/ff300000.gpu/governor"
+TimeoutSec=90s
+
+[Install]
+WantedBy=multi-user.target
