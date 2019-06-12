@@ -1,7 +1,7 @@
 pkgname=(linux-rock64 linux-rock64-headers)
 
 _linuxver=4.4.167
-_ayufanver=1196
+_ayufanver=1202
 _version=${_linuxver}-${_ayufanver}
 pkgver=${_linuxver}.${_ayufanver}
 pkgrel=1
@@ -15,7 +15,7 @@ makedepends=(gcc7 python)
 options=('!strip')
 source=("https://github.com/ayufan-rock64/linux-kernel/archive/${_version}-rockchip-ayufan.tar.gz"
         "compressed-modules.patch")
-sha256sums=('4c236265b9c7bf9c3f2beff84c8c2b66795251929c51478a5c487b38cd077b9b'
+sha256sums=('93e2a01dbfd33231835b2f4fbeb72322ffee0067e3eb22a366a584e0b42df0a5'
             '8fc582d911f8cd7e95035cb481dc9c38c807bef997d8d7243fd4a78c300374f4')
 
 prepare() {
