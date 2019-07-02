@@ -10,7 +10,7 @@ https://github.com/her01n/linux-rock64/releases/latest
 And install:
 
     # pacman -Syu
-    # pacman -U linux-rock64-4.4.167.1181-1-aarch64.pkg.tar.xz
+    # pacman -U linux-rock64-4.4.167.1217-1-aarch64.pkg.tar.xz
     # pacman -U mpp-20171218-1-aarch64.pkg.tar.xz
     # pacman -U ffmpeg-mpp-1:4.1.3-1-aarch.pkg.tar.xz
     # pacamn -U libmali-rock64-1.6.3.5-1-aarch64.pkg.tar.xz
