@@ -23,6 +23,27 @@ And install:
 Service "gpu-governor" would enable performance GPU governor. 
 With the default 'simple_ondemand' governor the playback frame rate is very poor.
 
+## Using Lima
+
+Mainline kernel since 5.3 includes open source *lima* driver.
+Playback is possible with this driver, no additional packages are necessary.
+However, direct playback seems to not work, and playback through wayland has a poor frame rate.
+
+To test:
+
+```bash
+# pacman -Syu linux-aarch64 mesa weston mpv
+# export XDG_RUNTIME_DIR=/var/run/0/xdg-runtime-dir
+# mkdir -p $XDG_RUNTIME_DIR
+# chmod go-rwx $XDG_RUNTIME_DIR
+# weston </dev/tty1
+# mpv --fullscreen test/h264.1080p.30fps.mkv
+```
+
+I suspect gpu frequency governor may be the reason of poor frame rate, 
+but I don't know how to change it with mainline kernel.
+YMMV.
+
 ## linux-rock64
 Contains kernel, modules and headers for rock64, made by ayufan. This kernel is necessary for 
 hardware video acceleration. It is no longer needed for usb3 and unaccelerated hdmi output,
