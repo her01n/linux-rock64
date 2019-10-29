@@ -1,7 +1,7 @@
 pkgname=(linux-rock64 linux-rock64-headers)
 
-_linuxver=4.4.167
-_ayufanver=1217
+_linuxver=4.4.197
+_ayufanver=1236
 _version=${_linuxver}-${_ayufanver}
 pkgver=${_linuxver}.${_ayufanver}
 pkgrel=1
@@ -10,12 +10,12 @@ licence=(GPL2)
 url='https://github.com/ayufan-rock64/linux-kernel'
 # It really does not want to build with gcc8
 # try out gcc8 with the next version
-makedepends=(gcc7 python)
+makedepends=(bc gcc7 python)
 # not sure what this does, but it is in the main kernel PKGBUILD
 options=('!strip')
 source=("https://github.com/ayufan-rock64/linux-kernel/archive/${_version}-rockchip-ayufan.tar.gz"
         "compressed-modules.patch")
-sha256sums=('f3be03432fa2c298f5c752b2d4ace3b4abfd4a0a67baf5ee4911e92e5bff8086'
+sha256sums=('2d0cf04eb3b0c6bcc5ea536aef30a869ab0c1b015734defa1dff27b6c6ebd314'
             '8fc582d911f8cd7e95035cb481dc9c38c807bef997d8d7243fd4a78c300374f4')
 
 prepare() {
